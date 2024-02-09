@@ -1,67 +1,67 @@
-require('dotenv/config')
+require('dotenv/config');
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
+const errorHandler = require('./middleware/errorHandler');
+const connectDB = require('./db/db');
+const Task = require('./models/Task'); 
+const { Server } = require('socket.io');
+const http = require('http');
 
 const app = express();
-const port = process.env.PORT || 4000;
 
-app.use(cors());
-app.use(express.json());
+const server = http.createServer(app);
+const io = new Server(server);
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'isaaconyes80@gmail.com',
-    pass: process.env.PASS,
-  },
-  pool: true,
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
 });
 
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-const validateContactForm = (req, res, next) => {
-  const { name, email, subject, message } = req.body;
-
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ message: 'Please fill in all fields' });
-  }
-
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ message: 'Invalid email format' });
-  }
-
-  next(); // Proceed to the next middleware or route handler
-};
-
-app.post('/api/contact', validateContactForm, async (req, res) => {
-  const formData = req.body;
-
-  const emailContent = `
-    Name: ${formData.name}
-    Email: ${formData.email}
-    Subject: ${formData.subject}
-    Message: ${formData.message}
-  `;
-
-  const mailOptions = {
-    from: 'isaaconyes80@gmail.com',
-    to: 'isaaconyes80@gmail.com',
-    subject: 'New Contact Form Submission',
-    text: emailContent,
-  };
+const checkUpcomingTasks = async () => {
+  const threeDaysFromNow = new Date();
+  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 
   try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'Sent' });
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+    const upcomingTasks = await Task.find({
+      dueDate: { $lte: threeDaysFromNow },
+    });
 
-app.listen(port, () => {
-  console.log(`Server is running on ${port}`);
+    // Emit notifications for upcoming tasks
+    io.emit('upcomingTasksNotification', upcomingTasks);
+  } catch (error) {
+    console.error('Error checking for upcoming tasks:', error);
+  }
+};
+
+
+// Schedule the check for upcoming tasks (you might want to use a scheduler library like cron for production)
+setInterval(checkUpcomingTasks, 24 * 60 * 60 * 1000);
+
+const port = process.env.PORT || 4000;
+
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
+
+app.use(express.json());
+
+// Assuming you have these route handlers properly implemented
+const taskRoutes = require('./routes/task');
+const authRoutes = require('./routes/auth');
+const mediaRoutes = require('./routes/media');
+
+app.use('/api/task', taskRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/media', mediaRoutes);
+
+app.use(errorHandler);
+
+connectDB(process.env.MONGO_URL);
+
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
