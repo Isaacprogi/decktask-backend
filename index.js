@@ -10,12 +10,20 @@ const app = express();
 
 const port = process.env.PORT || 4000;
 
+const allowedOrigins = ['https://decktask.onrender.com'];
+
 const corsOptions = {
-  origin: 'https://www.decktask.onrender.com', 
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   optionsSuccessStatus: 200,
   credentials: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-};
+}
 
 app.use(cors(corsOptions));
 
