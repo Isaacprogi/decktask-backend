@@ -33,7 +33,6 @@ const register = async (req, res, next) => {
 
         sendAccessToken(res, accessToken, others);
     } catch (error) {
-        console.error(error);
         next({ message: 'Internal Server error' });
     }
 };

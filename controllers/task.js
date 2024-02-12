@@ -10,10 +10,10 @@ const getTasks = async (req, res, next) => {
 };
 
 const addTask = async (req, res, next) => {
-    const {title,description,status,dueDate} = req.body
+    const {title} = req.body
     const creator = req.user
-    if(!title || !description || !status || !dueDate){
-        return next({ message: 'Please complete task details' });
+    if(!title){
+        return next({ message: 'Title is required' });
     }
   try {
     const task = new TaskModel({ ...req.body, creator });
@@ -36,9 +36,9 @@ const deleteTask = async (req, res, next) => {
 };
 
 const updateTask = async (req, res, next) => {
-  const {title,description,status,dueDate} = req.body
-    if(!title || !description || !status || !dueDate){
-        return next({ message: 'Please complete task details' });
+  const {title} = req.body
+    if(!title){
+        return next({ message: 'Title is required' });
     }
   try {
     const taskId = req.params.id;
