@@ -20,7 +20,6 @@ const addTask = async (req, res, next) => {
     const savedTask = await task.save();
     res.status(200).json(savedTask);
   } catch (error) {
-    console.log(error)
     return next({ message: 'Internal Server Error' });
   }
 };
@@ -46,7 +45,6 @@ const updateTask = async (req, res, next) => {
     await TaskModel.findByIdAndUpdate(taskId, updatedTask);
     res.status(200).json('success')
   } catch (error) {
-    console.log(error)
     return next({ message: 'Internal Server Error' });
   }
 };

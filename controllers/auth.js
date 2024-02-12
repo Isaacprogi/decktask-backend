@@ -66,8 +66,7 @@ const login = async (req, res, next) => {
         const { password:userPassword, refreshtoken: reftoken, __v, ...others } = user._doc;
         sendAccessToken(res, accessToken, others);
     } catch (error) {
-        next({ message: 'Internal server error' });
-        console.log(error)
+        next({ message: 'Internal server error' })
     }
 };
 
@@ -95,7 +94,6 @@ const refreshToken = async (req, res, next) => {
     try {
         payload = jwt.verify(token, process.env.RTS);
     } catch (error) {
-        console.log(error)
         return res.status(400).json({ accesstoken: '' });
     }
 
