@@ -11,7 +11,7 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 const corsOptions = {
-  origin: 'https://www.dectask.onrender.com', 
+  origin: 'https://www.decktask.onrender.com', 
   optionsSuccessStatus: 200,
   credentials: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
